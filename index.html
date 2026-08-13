@@ -26,6 +26,7 @@
             box-shadow: 0 4px 20px rgba(0, 20, 50, 0.08);
             padding: 20px 18px 24px;
             position: relative;
+            overflow: hidden;
         }
         /* 头部 */
         .header {
@@ -227,7 +228,49 @@
             pointer-events: none;
         }
 
-        /* Toast 提示 */
+        /* ---------- 感谢层（全屏覆盖） ---------- */
+        .thanks-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: none; /* 默认隐藏 */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            z-index: 100;
+            padding: 30px;
+            text-align: center;
+        }
+        .thanks-overlay .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #2a7de1;
+        }
+        .thanks-overlay .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a3a5c;
+            margin-bottom: 12px;
+        }
+        .thanks-overlay .desc {
+            font-size: 16px;
+            color: #6c8db0;
+            line-height: 1.6;
+        }
+        .thanks-overlay .close-hint {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #8a9fb0;
+            background: #f0f4fa;
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        /* Toast 提示（保留，但可能不常用） */
         .toast {
             position: fixed;
             top: 30%;
@@ -263,7 +306,7 @@
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="mainContainer">
     <!-- 头部 -->
     <div class="header">
         <div class="header-title">
@@ -272,65 +315,71 @@
         <div class="header-time" id="currentTime">11:38</div>
     </div>
 
-    <!-- 表单 -->
-    <form id="reportForm" onsubmit="return false;">
-        <!-- 单位 -->
-        <div class="form-item">
-            <label class="form-label">单位</label>
-            <input type="text" class="form-input" id="unit" placeholder="请输入单位名称" value="兰州局集团公司">
-        </div>
-
-        <!-- 车间 + 线路 两列 -->
-        <div class="form-row">
+    <!-- ===== 表单区域 ===== -->
+    <div id="formArea">
+        <form id="reportForm" onsubmit="return false;">
+            <!-- 单位 -->
             <div class="form-item">
-                <label class="form-label">车间</label>
-                <input type="text" class="form-input" id="workshop" placeholder="车间">
+                <label class="form-label">单位</label>
+                <input type="text" class="form-input" id="unit" placeholder="请输入单位名称" value="兰州局集团公司">
             </div>
-            <div class="form-item">
-                <label class="form-label">线路</label>
-                <input type="text" class="form-input" id="line" placeholder="线路">
-            </div>
-        </div>
 
-        <!-- 发现时间 -->
-        <div class="form-item">
-            <label class="form-label">发现时间</label>
-            <input type="datetime-local" class="form-input" id="discoverTime">
-        </div>
-
-        <!-- 填报内容 -->
-        <div class="form-item">
-            <label class="form-label">填报内容 <span class="required">*</span></label>
-            <textarea class="form-textarea" id="content" placeholder="请输入事故隐患描述.." maxlength="300"></textarea>
-            <div class="char-counter" id="charCounter">
-                <span class="current" id="charCount">0</span><span class="limit">/300</span>
-            </div>
-        </div>
-
-        <!-- 上传图片 -->
-        <div class="form-item">
-            <label class="form-label">上传图片（最多5张）</label>
-            <div class="upload-area" id="uploadArea">
-                <!-- 预览图片会动态插入到这里 -->
-                <!-- 添加按钮 -->
-                <div class="upload-box" id="addImageBtn">
-                    <span class="icon">📷</span>
-                    <span class="text">添加图片</span>
+            <!-- 车间 + 线路 两列 -->
+            <div class="form-row">
+                <div class="form-item">
+                    <label class="form-label">车间</label>
+                    <input type="text" class="form-input" id="workshop" placeholder="车间">
                 </div>
-                <div class="upload-hint" id="uploadHint">点击添加，最多5张</div>
+                <div class="form-item">
+                    <label class="form-label">线路</label>
+                    <input type="text" class="form-input" id="line" placeholder="线路">
+                </div>
             </div>
-            <!-- 隐藏的 file input -->
-            <input type="file" id="fileInput" accept="image/*" multiple style="display:none;">
-        </div>
 
-        <!-- 提交按钮 -->
-        <button type="button" class="submit-btn" id="submitBtn">提交</button>
-    </form>
+            <!-- 发现时间 -->
+            <div class="form-item">
+                <label class="form-label">发现时间</label>
+                <input type="datetime-local" class="form-input" id="discoverTime">
+            </div>
 
-    <div class="footer-note">— 信息仅本地处理，不存储 —</div>
+            <!-- 填报内容 -->
+            <div class="form-item">
+                <label class="form-label">填报内容 <span class="required">*</span></label>
+                <textarea class="form-textarea" id="content" placeholder="请输入事故隐患描述.." maxlength="300"></textarea>
+                <div class="char-counter" id="charCounter">
+                    <span class="current" id="charCount">0</span><span class="limit">/300</span>
+                </div>
+            </div>
+
+            <!-- 上传图片 -->
+            <div class="form-item">
+                <label class="form-label">上传图片（最多5张）</label>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-box" id="addImageBtn">
+                        <span class="icon">📷</span>
+                        <span class="text">添加图片</span>
+                    </div>
+                    <div class="upload-hint" id="uploadHint">点击添加，最多5张</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" multiple style="display:none;">
+            </div>
+
+            <!-- 提交按钮 -->
+            <button type="button" class="submit-btn" id="submitBtn">提交</button>
+        </form>
+        <div class="footer-note">— 信息仅本地处理，不存储 —</div>
+    </div>
+
+    <!-- ===== 感谢层 ===== -->
+    <div class="thanks-overlay" id="thanksOverlay">
+        <div class="icon">✅</div>
+        <div class="title">感谢提交！</div>
+        <div class="desc">您的隐患信息已成功记录。</div>
+        <div class="close-hint" id="closeHint">页面即将关闭……</div>
+    </div>
 </div>
 
-<!-- Toast 提示 -->
+<!-- Toast 提示（保留备用） -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -344,7 +393,6 @@
         }
         updateTime();
 
-        // 设置发现时间默认值为当前时间（datetime-local 格式）
         function setDefaultTime() {
             const now = new Date();
             const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
@@ -361,17 +409,15 @@
         contentTextarea.addEventListener('input', function() {
             const len = this.value.length;
             charCountSpan.textContent = len;
-            // 颜色提示
             charCounter.classList.remove('warning', 'danger');
             if (len > 270 && len <= 300) {
                 charCounter.classList.add('warning');
             } else if (len > 300) {
                 charCounter.classList.add('danger');
-                // 强制截断（但保留输入体验，只做视觉提醒，不强制截断，由 maxlength 控制）
             }
         });
 
-        // ---------- 图片上传（纯前端模拟，最多5张） ----------
+        // ---------- 图片上传 ----------
         const fileInput = document.getElementById('fileInput');
         const addBtn = document.getElementById('addImageBtn');
         const uploadArea = document.getElementById('uploadArea');
@@ -379,7 +425,6 @@
         let imageCount = 0;
         const MAX_IMAGES = 5;
 
-        // 点击添加按钮触发文件选择
         addBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             if (imageCount >= MAX_IMAGES) {
@@ -406,15 +451,12 @@
                     addImagePreview(dataUrl);
                     imageCount++;
                     updateUploadHint();
-                    // 如果已满，隐藏添加按钮（或保留但提示）
                     if (imageCount >= MAX_IMAGES) {
                         addBtn.style.display = 'none';
                     }
                 };
                 reader.readAsDataURL(file);
             });
-
-            // 清空 input，允许重复选择同一文件
             this.value = '';
         });
 
@@ -443,12 +485,10 @@
                 if (imageCount < MAX_IMAGES) {
                     addBtn.style.display = 'flex';
                 }
-                // 重新排序隐藏的提示
             });
 
             wrapper.appendChild(img);
             wrapper.appendChild(removeBtn);
-            // 插入到添加按钮之前
             uploadArea.insertBefore(wrapper, addBtn);
         }
 
@@ -460,38 +500,7 @@
         }
         updateUploadHint();
 
-        // ---------- 提交逻辑 ----------
-        const submitBtn = document.getElementById('submitBtn');
-
-        submitBtn.addEventListener('click', function() {
-            // 简单验证：填报内容不能为空
-            const content = contentTextarea.value.trim();
-            if (content === '') {
-                showToast('请填写事故隐患描述');
-                contentTextarea.focus();
-                return;
-            }
-
-            // 模拟提交成功
-            showToast('✅ 提交成功！');
-
-            // 延迟后尝试关闭页面
-            setTimeout(function() {
-                // 先尝试 window.close()
-                try {
-                    window.close();
-                } catch (e) {
-                    // 忽略
-                }
-                // 再尝试跳转到空白页（微信等环境可能不支持 close）
-                setTimeout(function() {
-                    // 若页面未关闭，给出提示让用户手动关闭
-                    showToast('请手动点击返回或关闭页面');
-                }, 500);
-            }, 600);
-        });
-
-        // ---------- Toast 提示 ----------
+        // ---------- Toast 工具 ----------
         let toastTimer = null;
         function showToast(msg) {
             const toast = document.getElementById('toast');
@@ -500,10 +509,42 @@
             clearTimeout(toastTimer);
             toastTimer = setTimeout(function() {
                 toast.classList.remove('show');
-            }, 2500);
+            }, 2000);
         }
 
-        // ---------- 阻止表单默认提交 ----------
+        // ---------- 提交逻辑 ----------
+        const submitBtn = document.getElementById('submitBtn');
+        const formArea = document.getElementById('formArea');
+        const thanksOverlay = document.getElementById('thanksOverlay');
+        const closeHint = document.getElementById('closeHint');
+
+        submitBtn.addEventListener('click', function() {
+            // 验证填报内容不能为空
+            const content = contentTextarea.value.trim();
+            if (content === '') {
+                showToast('请填写事故隐患描述');
+                contentTextarea.focus();
+                return;
+            }
+
+            // 1. 隐藏表单，显示感谢层
+            formArea.style.display = 'none';
+            thanksOverlay.style.display = 'flex';
+
+            // 2. 延迟后尝试关闭页面
+            setTimeout(function() {
+                // 尝试关闭窗口
+                try {
+                    window.close();
+                } catch (e) {
+                    // 忽略
+                }
+                // 如果关闭失败（例如微信浏览器），修改提示文字，引导用户手动关闭
+                closeHint.textContent = '如页面未关闭，请手动点击返回或关闭';
+            }, 1500); // 给用户足够时间看到感谢信息
+        });
+
+        // 阻止表单默认提交
         document.getElementById('reportForm').addEventListener('submit', function(e) {
             e.preventDefault();
         });
