@@ -221,12 +221,12 @@
             pointer-events: none;
         }
 
-        /* ---------- 公共隐藏工具 ---------- */
+        /* 隐藏工具 */
         .hidden {
             display: none !important;
         }
 
-        /* ---------- 感谢页样式 ---------- */
+        /* 感谢页 */
         .thanks-page {
             text-align: center;
             padding: 40px 20px;
@@ -264,7 +264,7 @@
             border-top: 1px solid #eef2f7;
         }
 
-        /* Toast 提示（保留） */
+        /* Toast 提示 */
         .toast {
             position: fixed;
             top: 30%;
@@ -300,7 +300,7 @@
         <div class="header-time" id="currentTime">11:38</div>
     </div>
 
-    <!-- ========== 表单区域 ========== -->
+    <!-- 表单区域 -->
     <div id="formArea">
         <form id="reportForm" onsubmit="return false;">
             <!-- 单位 -->
@@ -355,7 +355,7 @@
         <div class="footer-note">— 信息仅本地处理，不存储 —</div>
     </div>
 
-    <!-- ========== 感谢区域（默认隐藏） ========== -->
+    <!-- 感谢区域（默认隐藏） -->
     <div id="thanksArea" class="thanks-page hidden">
         <div class="icon">✅</div>
         <div class="title">感谢提交！</div>
@@ -377,20 +377,44 @@
         const thanksArea = document.getElementById('thanksArea');
         const closeHint = document.getElementById('closeHint');
 
-        // 如果是感谢模式，隐藏表单，显示感谢
+        // ========== 如果是感谢模式 ==========
         if (isThanks) {
             formArea.classList.add('hidden');
             thanksArea.classList.remove('hidden');
 
-            // 延迟1.5秒后尝试关闭窗口
+            // 延迟 1.5 秒后尝试关闭页面
             setTimeout(function() {
+                // 1. 优先尝试微信 WeixinJSBridge 关闭
+                if (typeof WeixinJSBridge !== 'undefined') {
+                    try {
+                        WeixinJSBridge.invoke('closeWindow');
+                        return; // 如果调用成功，不再执行后续
+                    } catch (e) {
+                        // 忽略错误，继续降级
+                    }
+                }
+
+                // 2. 尝试标准 window.close()
                 try {
                     window.close();
+                    // 如果关闭成功（极少数情况），window.closed 会变为 true
+                    if (window.closed) return;
                 } catch (e) {
                     // 忽略
                 }
-                // 若关闭失败，修改提示文字引导用户手动关闭
-                closeHint.textContent = '如页面未关闭，请手动关闭此标签页';
+
+                // 3. 最终降级方案：跳转到 about:blank 并显示提示
+                // 使用 location.replace 避免产生历史记录
+                location.replace('about:blank');
+                // 但 about:blank 后无法再执行脚本，所以先修改当前页面内容再跳转？
+                // 更好的做法：先清空页面内容，再显示一条信息，这样用户看到的是空白页+提示
+                // 但跳转到 about:blank 更彻底，但用户无法看到提示。
+                // 我们采用混合：先清空当前文档，显示提示，这样用户停留在当前页但内容已清空
+                // 但 location.replace 会直接替换，所以我们改为不跳转，而是清空内容
+                // 更优：使用 document.write 覆盖页面
+                document.open();
+                document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>已提交</title><style>body{display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:sans-serif;color:#999;font-size:18px;background:#f5f5f5;}</style></head><body><div>✅ 提交成功，请手动关闭此页面</div></body></html>');
+                document.close();
             }, 1500);
 
             // 注意：感谢模式下无需初始化表单，直接结束
