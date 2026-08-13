@@ -5,42 +5,357 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>事故隐患速报</title>
     <style>
-        /* 基础样式保持与之前一致，此处省略重复，只列出新增部分 */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif; }
-        body { background: #f0f4f8; min-height: 100vh; display: flex; justify-content: center; padding: 16px 12px 30px; }
-        .container { max-width: 420px; width: 100%; background: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,20,50,0.08); padding: 20px 18px 24px; position: relative; }
-        /* ... 其他样式与之前完全相同，此处省略以节省篇幅，实际使用时复制完整样式 ... */
-        /* 但必须包含以下两个类： */
-        .hidden { display: none !important; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        }
+        body {
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 16px 12px 30px;
+        }
+        .container {
+            max-width: 420px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 20, 50, 0.08);
+            padding: 20px 18px 24px;
+            position: relative;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #eef2f7;
+        }
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a3a5c;
+            letter-spacing: 1px;
+        }
+        .header-title small {
+            font-weight: 400;
+            font-size: 14px;
+            color: #6c8db0;
+            margin-left: 6px;
+        }
+        .header-time {
+            font-size: 13px;
+            color: #8a9fb0;
+            background: #f0f4fa;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .form-item {
+            margin-bottom: 18px;
+        }
+        .form-label {
+            display: block;
+            font-size: 15px;
+            font-weight: 500;
+            color: #1f3a57;
+            margin-bottom: 5px;
+        }
+        .form-label .required {
+            color: #e54646;
+            margin-left: 2px;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 15px;
+            border: 1px solid #d9e1ea;
+            border-radius: 10px;
+            background: #fafcff;
+            transition: border-color 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+            color: #1e2f3f;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2a7de1;
+            box-shadow: 0 0 0 3px rgba(42, 125, 225, 0.15);
+        }
+        .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236c8db0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+        .form-row .form-item {
+            flex: 1;
+        }
+        .form-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 15px;
+            border: 1px solid #d9e1ea;
+            border-radius: 10px;
+            background: #fafcff;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        .char-counter {
+            text-align: right;
+            font-size: 13px;
+            color: #8a9fb0;
+            margin-top: 4px;
+        }
+        .char-counter .current {
+            color: #1f3a57;
+            font-weight: 500;
+        }
+        .char-counter .limit {
+            color: #b0c4d6;
+        }
+        .char-counter.warning .current {
+            color: #e67e22;
+        }
+        .char-counter.danger .current {
+            color: #e54646;
+        }
+        .upload-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .upload-box {
+            width: 72px;
+            height: 72px;
+            border: 1.5px dashed #cbd7e6;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f8faff;
+            color: #6c8db0;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.15s;
+            position: relative;
+        }
+        .upload-box:active {
+            background: #e8f0fe;
+        }
+        .upload-box .icon {
+            font-size: 26px;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+        .upload-box .text {
+            font-size: 11px;
+            color: #8a9fb0;
+        }
+        .upload-preview {
+            width: 72px;
+            height: 72px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 1px solid #e2eaf2;
+            background: #f4f8fc;
+            position: relative;
+        }
+        .upload-preview .remove-btn {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 20px;
+            height: 20px;
+            background: #e54646;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            font-size: 14px;
+            line-height: 20px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .upload-preview .remove-btn:active {
+            background: #c0392b;
+        }
+        .upload-hint {
+            font-size: 12px;
+            color: #8a9fb0;
+            margin-top: 6px;
+            width: 100%;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #2a7de1;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 6px;
+            box-shadow: 0 4px 12px rgba(42, 125, 225, 0.3);
+        }
+        .submit-btn:active {
+            background: #1a5fb4;
+            transform: scale(0.98);
+        }
+        .submit-btn:disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* ---------- 公共隐藏工具 ---------- */
+        .hidden {
+            display: none !important;
+        }
+
+        /* ---------- 感谢页样式 ---------- */
         .thanks-page {
             text-align: center;
             padding: 40px 20px;
         }
-        .thanks-page .icon { font-size: 64px; margin-bottom: 20px; }
-        .thanks-page .title { font-size: 24px; font-weight: 600; color: #1a3a5c; margin-bottom: 12px; }
-        .thanks-page .desc { font-size: 16px; color: #6c8db0; line-height: 1.6; }
-        .thanks-page .close-hint { margin-top: 30px; font-size: 14px; color: #8a9fb0; background: #f0f4fa; padding: 8px 16px; border-radius: 20px; }
-        /* 其余原有样式继续保留 */
+        .thanks-page .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .thanks-page .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a3a5c;
+            margin-bottom: 12px;
+        }
+        .thanks-page .desc {
+            font-size: 16px;
+            color: #6c8db0;
+            line-height: 1.6;
+        }
+        .thanks-page .close-hint {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #8a9fb0;
+            background: #f0f4fa;
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 12px;
+            color: #b0c4d6;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #eef2f7;
+        }
+
+        /* Toast 提示（保留） */
+        .toast {
+            position: fixed;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(0, 0, 0, 0.78);
+            color: #fff;
+            padding: 18px 28px;
+            border-radius: 14px;
+            font-size: 16px;
+            max-width: 80%;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(4px);
+            z-index: 999;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
     </style>
 </head>
 <body>
-<div class="container" id="app">
+
+<div class="container" id="mainContainer">
     <!-- 头部 -->
     <div class="header">
-        <div class="header-title">事故隐患速报<span style="font-weight:400;font-size:14px;color:#6c8db0;margin-left:4px;">随手拍</span></div>
+        <div class="header-title">
+            事故隐患速报<span style="font-weight:400;font-size:14px;color:#6c8db0;margin-left:4px;">随手拍</span>
+        </div>
         <div class="header-time" id="currentTime">11:38</div>
     </div>
 
-    <!-- 表单区域 -->
+    <!-- ========== 表单区域 ========== -->
     <div id="formArea">
-        <!-- 表单内容与之前完全一样，省略重复 -->
         <form id="reportForm" onsubmit="return false;">
-            <!-- 单位、车间、线路、时间、内容、图片上传、提交按钮等 -->
+            <!-- 单位 -->
+            <div class="form-item">
+                <label class="form-label">单位</label>
+                <input type="text" class="form-input" id="unit" placeholder="请输入单位名称" value="兰州局集团公司">
+            </div>
+
+            <!-- 车间 + 线路 -->
+            <div class="form-row">
+                <div class="form-item">
+                    <label class="form-label">车间</label>
+                    <input type="text" class="form-input" id="workshop" placeholder="车间">
+                </div>
+                <div class="form-item">
+                    <label class="form-label">线路</label>
+                    <input type="text" class="form-input" id="line" placeholder="线路">
+                </div>
+            </div>
+
+            <!-- 发现时间 -->
+            <div class="form-item">
+                <label class="form-label">发现时间</label>
+                <input type="datetime-local" class="form-input" id="discoverTime">
+            </div>
+
+            <!-- 填报内容 -->
+            <div class="form-item">
+                <label class="form-label">填报内容 <span class="required">*</span></label>
+                <textarea class="form-textarea" id="content" placeholder="请输入事故隐患描述.." maxlength="300"></textarea>
+                <div class="char-counter" id="charCounter">
+                    <span class="current" id="charCount">0</span><span class="limit">/300</span>
+                </div>
+            </div>
+
+            <!-- 上传图片 -->
+            <div class="form-item">
+                <label class="form-label">上传图片（最多5张）</label>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-box" id="addImageBtn">
+                        <span class="icon">📷</span>
+                        <span class="text">添加图片</span>
+                    </div>
+                    <div class="upload-hint" id="uploadHint">点击添加，最多5张</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" multiple style="display:none;">
+            </div>
+
+            <!-- 提交按钮 -->
+            <button type="button" class="submit-btn" id="submitBtn">提交</button>
         </form>
         <div class="footer-note">— 信息仅本地处理，不存储 —</div>
     </div>
 
-    <!-- 感谢区域（默认隐藏） -->
+    <!-- ========== 感谢区域（默认隐藏） ========== -->
     <div id="thanksArea" class="thanks-page hidden">
         <div class="icon">✅</div>
         <div class="title">感谢提交！</div>
@@ -49,44 +364,188 @@
     </div>
 </div>
 
+<!-- Toast 提示 -->
+<div class="toast" id="toast"></div>
+
 <script>
     (function() {
-        // 检测 URL 参数是否带有 ?thanks=1
+        // ---------- 检测 URL 参数 ----------
         const urlParams = new URLSearchParams(window.location.search);
         const isThanks = urlParams.get('thanks') === '1';
 
         const formArea = document.getElementById('formArea');
         const thanksArea = document.getElementById('thanksArea');
+        const closeHint = document.getElementById('closeHint');
 
+        // 如果是感谢模式，隐藏表单，显示感谢
         if (isThanks) {
-            // 显示感谢页，隐藏表单
             formArea.classList.add('hidden');
             thanksArea.classList.remove('hidden');
-            // 尝试关闭页面（仅作尝试）
-            setTimeout(() => {
-                try { window.close(); } catch(e) {}
-                // 如果关闭失败，提示手动关闭
-                document.getElementById('closeHint').textContent = '如页面未关闭，请手动关闭此标签页';
+
+            // 延迟1.5秒后尝试关闭窗口
+            setTimeout(function() {
+                try {
+                    window.close();
+                } catch (e) {
+                    // 忽略
+                }
+                // 若关闭失败，修改提示文字引导用户手动关闭
+                closeHint.textContent = '如页面未关闭，请手动关闭此标签页';
             }, 1500);
-        } else {
-            // 正常显示表单，初始化时间、字数统计、图片上传等（代码与之前相同）
-            // 此处省略重复初始化，实际需保留所有初始化逻辑
+
+            // 注意：感谢模式下无需初始化表单，直接结束
+            return;
         }
 
-        // ---------- 提交事件 ----------
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.addEventListener('click', function() {
-            const content = document.getElementById('content').value.trim();
-            if (content === '') {
-                alert('请填写事故隐患描述');
+        // ---------- 以下是正常表单模式 ----------
+        // 初始化时间
+        function updateTime() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('currentTime').textContent = h + ':' + m;
+        }
+        updateTime();
+
+        function setDefaultTime() {
+            const now = new Date();
+            const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+            const str = local.toISOString().slice(0, 16);
+            document.getElementById('discoverTime').value = str;
+        }
+        setDefaultTime();
+
+        // 字数统计
+        const contentTextarea = document.getElementById('content');
+        const charCountSpan = document.getElementById('charCount');
+        const charCounter = document.getElementById('charCounter');
+
+        contentTextarea.addEventListener('input', function() {
+            const len = this.value.length;
+            charCountSpan.textContent = len;
+            charCounter.classList.remove('warning', 'danger');
+            if (len > 270 && len <= 300) {
+                charCounter.classList.add('warning');
+            } else if (len > 300) {
+                charCounter.classList.add('danger');
+            }
+        });
+
+        // 图片上传
+        const fileInput = document.getElementById('fileInput');
+        const addBtn = document.getElementById('addImageBtn');
+        const uploadArea = document.getElementById('uploadArea');
+        const uploadHint = document.getElementById('uploadHint');
+        let imageCount = 0;
+        const MAX_IMAGES = 5;
+
+        addBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (imageCount >= MAX_IMAGES) {
+                showToast('最多只能上传5张图片');
                 return;
             }
-            // 提交后跳转到同一页面，带上 ?thanks=1 参数
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            const files = Array.from(this.files);
+            if (files.length === 0) return;
+
+            let validFiles = files.slice(0, MAX_IMAGES - imageCount);
+            if (files.length > MAX_IMAGES - imageCount) {
+                showToast('最多上传5张，已自动截取前 ' + (MAX_IMAGES - imageCount) + ' 张');
+            }
+
+            validFiles.forEach(file => {
+                if (imageCount >= MAX_IMAGES) return;
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const dataUrl = ev.target.result;
+                    addImagePreview(dataUrl);
+                    imageCount++;
+                    updateUploadHint();
+                    if (imageCount >= MAX_IMAGES) {
+                        addBtn.style.display = 'none';
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            this.value = '';
+        });
+
+        function addImagePreview(dataUrl) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'upload-preview';
+            wrapper.style.position = 'relative';
+            wrapper.style.flexShrink = '0';
+
+            const img = document.createElement('img');
+            img.src = dataUrl;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '12px';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-btn';
+            removeBtn.textContent = '×';
+            removeBtn.type = 'button';
+            removeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                wrapper.remove();
+                imageCount--;
+                updateUploadHint();
+                if (imageCount < MAX_IMAGES) {
+                    addBtn.style.display = 'flex';
+                }
+            });
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(removeBtn);
+            uploadArea.insertBefore(wrapper, addBtn);
+        }
+
+        function updateUploadHint() {
+            uploadHint.textContent = '已选 ' + imageCount + ' 张，最多 ' + MAX_IMAGES + ' 张';
+            if (imageCount >= MAX_IMAGES) {
+                uploadHint.textContent = '已满 ' + MAX_IMAGES + ' 张';
+            }
+        }
+        updateUploadHint();
+
+        // Toast 工具
+        let toastTimer = null;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function() {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // ---------- 提交逻辑 ----------
+        const submitBtn = document.getElementById('submitBtn');
+
+        submitBtn.addEventListener('click', function() {
+            const content = contentTextarea.value.trim();
+            if (content === '') {
+                showToast('请填写事故隐患描述');
+                contentTextarea.focus();
+                return;
+            }
+
+            // 提交成功，跳转至当前页面并带上 ?thanks=1 参数
             window.location.href = window.location.pathname + '?thanks=1';
         });
 
-        // 其他初始化（时间、字数、图片）保持不变……
-        // 提醒：以上是核心改动，实际使用时需将原有所有JS代码整合进去。
+        // 阻止表单默认提交
+        document.getElementById('reportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+        });
+
     })();
 </script>
 </body>
